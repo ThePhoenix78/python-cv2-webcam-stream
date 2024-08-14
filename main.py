@@ -2,12 +2,13 @@ import asyncio
 import websockets
 import cv2
 import base64
-from camera import Camera
+# from camera import Camera
+from screen import Screen
 from httpserver import HttpServer
 import signal
 import json
 
-camera = Camera(0)
+screen = Screen(0)
 httpserver = HttpServer(8088)
 clients = set()
 
@@ -21,9 +22,10 @@ async def handler(websocket):
 
 
 async def send(websocket):
-    frame = camera.get_frame()
-    faces = camera.get_faces()
+    frame = screen.get_frame()
+    faces = screen.get_faces()
     ret, encoded = cv2.imencode(".png", frame)
+
     if (ret):
         base64Frame = base64.b64encode(encoded).decode("ascii")
         try:
@@ -54,12 +56,12 @@ async def main():
 
     try:
         httpserver.start()
-        camera.start()
+        screen.start()
         async with websockets.serve(handler, "", 8089):
             await broadcast()
     except (KeyboardInterrupt, asyncio.CancelledError):
         httpserver.stop()
-        camera.stop()
+        screen.stop()
 
 if __name__ == "__main__":
     asyncio.run(main())
